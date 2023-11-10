@@ -26,16 +26,20 @@ on :key_held do |event|
 end
 
 update do
-    if @square.x < 0
+    if @square.x + @x_speed < 0
         @square.x = 0
-    elsif @square.x > (Window.width - @square.size)
+        @x_speed = 0
+    elsif @square.x + @x_speed > (Window.width - @square.size)
         @square.x = Window.width - @square.size
+        @x_speed = 0
     end
 
-    if @square.y < 0
+    if @square.y + @y_speed < 0
         @square.y = 0
-    elsif @square.y > (Window.height - @square.size)
+        @y_speed = 0
+    elsif @square.y + @y_speed > (Window.height - @square.size)
         @square.y = Window.height - @square.size
+        @y_speed = 0
     end
 
     checkY = @square.y + @square.height > @wall.y && @square.y < @wall.y + @wall.height
