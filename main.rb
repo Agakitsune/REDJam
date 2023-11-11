@@ -20,42 +20,193 @@ tileset = Tileset.new(
 
 # TILESET DE 80x45
 
-tileset.define_tile('white', 0, 0)
 tileset.define_tile('black', 0, 1)
-tileset.define_tile('white_wall_top', 1, 0)
-tileset.define_tile('black_wall_top', 1, 1)
-tileset.define_tile('white_wall_left', 1, 0, rotate: -90)
-tileset.define_tile('black_wall_left', 1, 1, rotate: -90)
-tileset.define_tile('white_wall_down', 1, 0, rotate: 180)
-tileset.define_tile('black_wall_down', 1, 1, rotate: 180)
-tileset.define_tile('white_wall_right', 1, 0, rotate: 90)
-tileset.define_tile('black_wall_right', 1, 1, rotate: 90)
-tileset.define_tile('white_corner_topleft', 2, 0)
-tileset.define_tile('black_corner_topleft', 2, 1)
-tileset.define_tile('white_corner_topright', 2, 0, rotate: 90)
-tileset.define_tile('black_corner_topright', 2, 1, rotate: 90)
-tileset.define_tile('white_corner_bottomright', 2, 0, rotate: 180)
-tileset.define_tile('black_corner_bottomright', 2, 1, rotate: 180)
-tileset.define_tile('white_corner_bottomleft', 2, 0, rotate: -90)
-tileset.define_tile('black_corner_bottomleft', 2, 1, rotate: -90)
+tileset.define_tile('white', 0, 0)
 
-tileset.set_tile('white_corner_topleft', [
+tileset.define_tile('black_wall_down', 1, 1)
+tileset.define_tile('white_wall_down', 1, 0)
+
+tileset.define_tile('black_wall_top', 2, 1)
+tileset.define_tile('white_wall_top', 2, 0)
+
+tileset.define_tile('black_wall_bottom', 2, 1, rotate: 180)
+tileset.define_tile('white_wall_bottom', 2, 0, rotate: 180)
+
+tileset.define_tile('black_wall_left', 2, 1, rotate: 90)
+tileset.define_tile('white_wall_left', 2, 0, rotate: 90)
+
+tileset.define_tile('black_wall_right', 2, 1, rotate: -90)
+tileset.define_tile('white_wall_right', 2, 0, rotate: -90)
+
+tileset.define_tile('black_corner_bottomleft', 3, 1)
+tileset.define_tile('white_corner_bottomleft', 3, 0)
+
+tileset.define_tile('black_corner_bottomright', 3, 1, rotate: -90)
+tileset.define_tile('white_corner_bottomright', 3, 0, rotate: -90)
+
+tileset.define_tile('black_corner_topright', 3, 1, rotate: 180)
+tileset.define_tile('white_corner_topright', 3, 0, rotate: 180)
+
+tileset.define_tile('black_corner_topleft', 3, 1, rotate: 90)
+tileset.define_tile('white_corner_topleft', 3, 0, rotate: 90)
+
+tileset.define_tile('black_border_bottomleft', 4, 1)
+tileset.define_tile('white_border_bottomleft', 4, 0)
+
+tileset.define_tile('black_border_bottomright', 4, 1, rotate: -90)
+tileset.define_tile('white_border_bottomright', 4, 0, rotate: -90)
+
+tileset.define_tile('black_border_topleft', 4, 1, rotate: 90)
+tileset.define_tile('white_border_topleft', 4, 0, rotate: 90)
+
+tileset.define_tile('black_border_topright', 4, 1, rotate: 180)
+tileset.define_tile('white_border_topright', 4, 0, rotate: 180)
+
+# ._
+# |B
+
+# tileset.define_tile('black_wall_left', 2, 1, rotate: -90)
+# tileset.define_tile('black_corner_topleft', 3, 1, rotate: 90)
+# tileset.define_tile('black_wall_topleft', 4, 1, rotate: -90)
+
+# # |
+# #_.
+# tileset.define_tile('black_wall_right', 2, 1, rotate: 90)
+# tileset.define_tile('black_wall_botttomright', 4, 1, rotate: 90)
+
+# # ._
+# # |W
+# tileset.define_tile('white_wall_left', 2, 0, rotate: -90)
+# tileset.define_tile('white_corner_topleft', 3, 0, rotate: 90)
+# tileset.define_tile('white_wall_topleft', 4, 0, rotate: -90)
+# tileset.define_tile('white_wall_top', 2, 0)
+
+
+# tileset.define_tile('black_corner_topright', 2, 1, rotate: 90)
+# tileset.define_tile('black_corner_bottomleft', 2, 1, rotate: -90)   
+
+# tileset.define_tile('white_corner_bottomright', 2, 0, rotate: 180)
+# tileset.define_tile('white_wall_right', 1, 0, rotate: 90)
+# tileset.define_tile('white_corner_topright', 2, 0, rotate: 90)
+# tileset.define_tile('white_corner_bottomleft', 2, 0, rotate: -90)
+
+# tileset.set_tile('white_corner_topleft', [
+#     {x: 0, y: 0}
+# ])
+
+tileset.set_tile('black', [
     {x: 0, y: 0}
 ])
 
-tileset.set_tile('black_wall_top', [
-    {x: 32, y: 0}
-])
-
-tileset.set_tile('black_wall_left', [
+tileset.set_tile('white', [
     {x: 0, y: 32}
 ])
 
-tileset.set_tile('white', [
+tileset.set_tile('black_wall_down', [
+    {x: 32, y: 0}
+])
+
+tileset.set_tile('white_wall_down', [
     {x: 32, y: 32}
 ])
 
-@square = Square.new(x: 10, y: 10, size: 32, color: 'blue')
+tileset.set_tile('black_wall_top', [
+    {x: 64, y: 0}
+])
+
+tileset.set_tile('white_wall_top', [
+    {x: 64, y: 32}
+])
+
+tileset.set_tile('black_wall_bottom', [
+    {x: 98, y: 0}
+])
+
+tileset.set_tile('white_wall_bottom', [
+    {x: 98, y: 32}
+])
+
+tileset.set_tile('black_wall_left', [
+    {x: 130, y: 0}
+])
+
+tileset.set_tile('white_wall_left', [
+    {x: 130, y: 32}
+])
+
+tileset.set_tile('black_wall_right', [
+    {x: 162, y: 0}
+])
+
+tileset.set_tile('white_wall_right', [
+    {x: 162, y: 32}
+])
+
+tileset.set_tile('black_corner_bottomleft', [
+    {x: 194, y: 0}
+])
+
+tileset.set_tile('white_corner_bottomleft', [
+    {x: 194, y: 32}
+])
+
+tileset.set_tile('black_corner_bottomright', [
+    {x: 226, y: 0}
+])
+
+tileset.set_tile('white_corner_bottomright', [
+    {x: 226, y: 32}
+])
+
+tileset.set_tile('black_corner_topright', [
+    {x: 258, y: 0}
+])
+
+tileset.set_tile('white_corner_topright', [
+    {x: 258, y: 32}
+])
+
+tileset.set_tile('black_corner_topleft', [
+    {x: 290, y: 0}
+])
+
+tileset.set_tile('white_corner_topleft', [
+    {x: 290, y: 32}
+])
+
+tileset.set_tile('black_border_bottomleft', [
+    {x: 322, y: 0}
+])
+
+tileset.set_tile('white_border_bottomleft', [
+    {x: 322, y: 32}
+])
+
+tileset.set_tile('black_border_bottomright', [
+    {x: 354, y: 0}
+])
+
+tileset.set_tile('white_border_bottomright', [
+    {x: 354, y: 32}
+])
+
+tileset.set_tile('black_border_topleft', [
+    {x: 386, y: 0}
+])
+
+tileset.set_tile('white_border_topleft', [
+    {x: 386, y: 32}
+])
+
+tileset.set_tile('black_border_topright', [
+    {x: 418, y: 0}
+])
+
+tileset.set_tile('white_border_topright', [
+    {x: 418, y: 32}
+])
+
+@square = Square.new(x: 100, y: 100, size: 22, color: 'blue')
 @walls = [
     Rectangle.new(x: 0, y: 96, width: 64, height: 32, color: 'red'),
     Rectangle.new(x: 32, y: 144, width: 64, height: 64, color: 'red'),
