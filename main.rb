@@ -62,38 +62,6 @@ tileset.define_tile('white_border_topleft', 4, 0, rotate: 90)
 tileset.define_tile('black_border_topright', 4, 1, rotate: 180)
 tileset.define_tile('white_border_topright', 4, 0, rotate: 180)
 
-# ._
-# |B
-
-# tileset.define_tile('black_wall_left', 2, 1, rotate: -90)
-# tileset.define_tile('black_corner_topleft', 3, 1, rotate: 90)
-# tileset.define_tile('black_wall_topleft', 4, 1, rotate: -90)
-
-# # |
-# #_.
-# tileset.define_tile('black_wall_right', 2, 1, rotate: 90)
-# tileset.define_tile('black_wall_botttomright', 4, 1, rotate: 90)
-
-# # ._
-# # |W
-# tileset.define_tile('white_wall_left', 2, 0, rotate: -90)
-# tileset.define_tile('white_corner_topleft', 3, 0, rotate: 90)
-# tileset.define_tile('white_wall_topleft', 4, 0, rotate: -90)
-# tileset.define_tile('white_wall_top', 2, 0)
-
-
-# tileset.define_tile('black_corner_topright', 2, 1, rotate: 90)
-# tileset.define_tile('black_corner_bottomleft', 2, 1, rotate: -90)   
-
-# tileset.define_tile('white_corner_bottomright', 2, 0, rotate: 180)
-# tileset.define_tile('white_wall_right', 1, 0, rotate: 90)
-# tileset.define_tile('white_corner_topright', 2, 0, rotate: 90)
-# tileset.define_tile('white_corner_bottomleft', 2, 0, rotate: -90)
-
-# tileset.set_tile('white_corner_topleft', [
-#     {x: 0, y: 0}
-# ])
-
 tileset.set_tile('black', [
     {x: 0, y: 0}
 ])
@@ -206,7 +174,7 @@ tileset.set_tile('white_border_topright', [
     {x: 418, y: 32}
 ])
 
-@square = Square.new(x: 100, y: 100, size: 22, color: 'blue')
+@square = Square.new(x: 100, y: 100, size: 32, color: 'blue')
 @walls = [
     Rectangle.new(x: 0, y: 96, width: 64, height: 32, color: 'red'),
     Rectangle.new(x: 32, y: 144, width: 64, height: 64, color: 'red'),
