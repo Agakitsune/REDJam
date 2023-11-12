@@ -8,6 +8,7 @@ require './src/Vector.rb'
 require './src/OriginSprite.rb'
 require './src/Bullet.rb'
 require './src/Weapon.rb'
+require './src/Map.rb'
 
 set title: 'ruby2dGame'
 set width: 800
@@ -15,36 +16,39 @@ set height: 600
 
 currentState = MenuState.new
 
-update do
-    currentState.update
-end
+#update do
+#    currentState.update
+#end
 
-on :key_down do |event|
-    case event.key
-        when 'left'
-            if currentState.stateName == 'Menu'
-                puts 'u wot m8 1'
-            else
-                Window.clear    
-                currentState = MenuState.new
-            end
-        when 'right'
-            if currentState.stateName == 'Gameplay'
-                puts 'u wot m8 2'
-            else
-                Window.clear    
-                currentState = GameplayState.new
-            end
-        when 'up'
-            if currentState.stateName == 'GameOver'
-                puts 'u wot m8 3'
-            else
-                Window.clear    
-                currentState = GameOverState.new
-            end
+#on :key_down do |event|
+#    case event.key
+#        when 'left'
+#            if currentState.stateName == 'Menu'
+#                puts 'u wot m8 1'
+#            else
+#                Window.clear    
+#                currentState = MenuState.new
+#            end
+#        when 'right'
+#            if currentState.stateName == 'Gameplay'
+#                puts 'u wot m8 2'
+#            else
+#                Window.clear    
+#                currentState = GameplayState.new
+#            end
+#        when 'up'
+#            if currentState.stateName == 'GameOver'
+#                puts 'u wot m8 3'
+#            else
+#                Window.clear    
+#                currentState = GameOverState.new
+#            end
 
+
+#set width: 960
+#set height: 540
 # Define a square shape.
-@square = Square.new(x: 0, y: 0, size: 64, color: 'blue')
+@square = Rectangle.new(x: 100, y: 100, width: 15 * 1.5, height: 5 * 1.5, color: 'blue')
 @square.color.opacity = 0
 
 @wall = Square.new(x: 0, y: 100, size: 100, color: 'red')
@@ -247,6 +251,40 @@ end
 # Define the initial speed (and direction).
 @velocity = Vector2.new(0, 0)
 
+@speed = 3.0
+
+
+# @walls = [
+#     Rectangle.new(x: 0, y: 1, width: 1, height: 9, color: 'red'),
+#     Rectangle.new(x: 1, y: 3, width: 7, height: 1, color: 'red'),
+#     Rectangle.new(x: 8, y: 2, width: 1, height: 4, color: 'red'),
+#     Rectangle.new(x: 8, y: 6, width: 4, height: 1, color: 'red'),
+#     Rectangle.new(x: 12, y: 7, width: 3, height: 1, color: 'red'),
+#     Rectangle.new(x: 15, y: 0, width: 1, height: 7, color: 'red'),
+#     # Rectangle.new(x: 32, y: 144, width: 64, height: 64, color: 'red'),
+# ]
+
+@walls = Map('./assets/Collide.csv')
+
+@walls.each do |wall|
+    wall.x *= 18 * @scaleX
+    wall.y *= 18 * @scaleY
+    wall.width *= 18 * @scaleX
+    wall.height *= 18 * @scaleY
+end
+
+@map = Image.new('./assets/Map.png',
+    width: 1800 * 1.5, height: 1800 * 1.5
+)
+
+@mapOver = Image.new('./assets/MapOver.png',
+    width: 1800 * 1.5, height: 1800 * 1.5
+)
+
+@shadow = Image.new('./assets/shadow.png',
+    width: 15 * 1.5, height: 5 * 1.5
+)
+
 @walk = false
 @roll = false
 @rollVelocity = Vector2.new(0, 0)
@@ -442,6 +480,14 @@ roll_anim = [
     @bullets.append(Bullet.new(@bullet, @player.x + 16 * @scaleX + out.x, @player.y + 26 * @scaleY + out.y, angle, 10))
 end
 
+@shadow.x = Window.width / 2
+@shadow.y = Window.height / 2
+@square.x = Window.width / 2
+@square.y = Window.height / 2
+
+@offsetX = 0
+@offsetY = 0
+
 update do
     clear
 
@@ -565,56 +611,111 @@ update do
         @square.x = Window.width - @square.size
     end
 
-    if @square.y < 0
-        @square.y = 0
-    elsif @square.y > (Window.height - @square.size)
-        @square.y = Window.height - @square.size
-    end
+    # if @square.x + @offsetX + @x_speed < 0
+    #     @square.x + @offsetX = 0
+    #     @x_speed = 0
+    # elsif @square.x + @offsetX + @x_speed > (Window.width - @square.width)
+    #     @square.x + @offsetX = Window.width - @square.width
+    #     @x_speed = 0
+    # end
 
-    checkY = @square.y + @square.height > @wall.y && @square.y < @wall.y + @wall.height
-    checkX = @square.x + @square.width > @wall.x && @square.x < @wall.x + @wall.width
+    # if @square.y + @offsetY + @y_speed < 0
+    #     @square.y + @offsetY = 0
+    #     @y_speed = 0
+    # elsif @square.y + @offsetY + @y_speed > (Window.height - @square.height)
+    #     @square.y + @offsetY = Window.height - @square.height
+    #     @y_speed = 0
+    # end
 
-    above = @square.y + @square.height <= @wall.y
-    below = @square.y >= @wall.y + @wall.height
-    left = @square.x + @square.width <= @wall.x
-    right = @square.x >= @wall.x + @wall.width
+    playerX = (@square.x + @offsetX)
+    playerY = (@square.y + @offsetY)
+    playerHeight = @square.height
+    playerWidth = @square.width
 
-    if checkX || checkY
-        if above
-            if @square.y + @square.height + @velocity.y > @wall.y
-                @square.y = @wall.y - @square.height
-                @velocity.y = 0
+    # puts playerX
+    # puts playerY
+
+    @walls.each do |wall|
+
+        checkY = playerY + playerHeight > wall.y && playerY < wall.y + wall.height
+        checkX = playerX + playerWidth > wall.x && playerX < wall.x + wall.width
+
+        above = playerY + playerHeight <= wall.y
+        below = playerY >= wall.y + wall.height
+        left = playerX + playerWidth <= wall.x
+        right = playerX >= wall.x + wall.width
+
+        if checkX || checkY
+            if above
+                if playerY + playerHeight + @y_speed > wall.y
+                    @square.color = 'purple'
+                    playerY = wall.y - playerHeight
+                    @y_speed = 0
+                else
+                    @square.color = 'yellow'
+                end
+            elsif below
+                if playerY + @y_speed < wall.y + wall.height
+                    @square.color = 'purple'
+                    playerY = wall.y + wall.height
+                    @y_speed = 0
+                else
+                    @square.color = 'green'
+                end
+            elsif left
+                if playerX + playerWidth + @x_speed > wall.x
+                    @square.color = 'purple'
+                    playerX = wall.x - playerWidth
+                    @x_speed = 0
+                else
+                    @square.color = 'red'
+                end
+            elsif right
+                if playerX + @x_speed < wall.x + wall.width
+                    @square.color = 'purple'
+                    playerX = wall.x + wall.width
+                    @x_speed = 0
+                else
+                    @square.color = 'orange'
+                end
             end
-        elsif below
-            if @square.y + @velocity.y < @wall.y + @wall.height
-                @square.y = @wall.y + @wall.height
-                @velocity.y = 0
-            end
-        elsif left
-            if @square.x + @square.width + @velocity.x > @wall.x
-                @square.x = @wall.x - @square.width
-                @velocity.x = 0
-            end
-        elsif right
-            if @square.x + @velocity.x < @wall.x + @wall.width
-                @square.x = @wall.x + @wall.width
-                @velocity.x = 0
-            end
+        else
+            @square.color = 'blue'
         end
     end
 
+    #@map.draw(x: @map.x, y: @map.y)
+
+    #@shadow.draw(x: @square.x, y: @square.y)
+
+    #@mapOver.draw(x: @map.x, y: @map.y)
+
+    #Rectangle.draw(x: @square.x, y: @square.y, width: @square.width, height: @square.height, color: [@square.color] * 4)
+
+    #@walls.each do |wall|
+    #    Rectangle.draw(x: @map.x + wall.x, y: @map.y + wall.y, width: wall.width, height: wall.height, color: [wall.color] * 4)
+    #end
+
     @velocity = @velocity.normalize().mul(4.0)
 
+    @map.x -= @velocity.x
+    @map.y -= @velocity.y
+    @mapOver.x -= @velocity.x
+    @mapOver.y -= @velocity.y
+  
+    @offsetX += @velocity.x
+    @offsetY += @velocity.y
+    
     if @roll and @rollInvicible
         @velocity = @velocity.mul(2)
     elsif not @rollInvicible and @roll
         @velocity = @velocity.mul(0.95)
     end
 
-    @square.x += @velocity.x
-    @square.y += @velocity.y
-    @player.x += @velocity.x
-    @player.y += @velocity.y
+    #@square.x += @velocity.x
+    #@square.y += @velocity.y
+    #@player.x += @velocity.x
+    #@player.y += @velocity.y
 
     if @velocity.x == 0 && @velocity.y == 0
         @walk = false
