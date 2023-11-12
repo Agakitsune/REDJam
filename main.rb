@@ -7,6 +7,8 @@ require './item.rb'
 @player = Player.new(10, 10, 50)
 @player.square.setColor('blue')
 @wall = Square.new(x: 0, y: 100, size: 2, color: 'red')
+
+# Handle all items on the maps
 @items = [
     Item.new('apple', 100, 100, 30, 30),
     Item.new('apple', 200, 200, 20, 20),
@@ -22,6 +24,7 @@ require './item.rb'
 
 @speed = 2
 
+# add an Item in player's inventory
 def addItem(item)
     if @player.inventory.key?(item.name) == true
         @player.inventory[item.name].append(item)
@@ -30,6 +33,7 @@ def addItem(item)
     end
 end
 
+# remove an Item in player's inventory
 def removeElement(key)
     if @player.inventory.key?(key) == true
         if @player.inventory[key].empty?
