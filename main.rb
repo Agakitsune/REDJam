@@ -1,10 +1,47 @@
 require 'ruby2d'
+require './menuState'
+require './gameplayState'
+require './gameOverState'
 require './character.rb'
 require './src/SpriteSheet.rb'
 require './src/Vector.rb'
 require './src/OriginSprite.rb'
 require './src/Bullet.rb'
 require './src/Weapon.rb'
+
+set title: 'ruby2dGame'
+set width: 800
+set height: 600
+
+currentState = MenuState.new
+
+update do
+    currentState.update
+end
+
+on :key_down do |event|
+    case event.key
+        when 'left'
+            if currentState.stateName == 'Menu'
+                puts 'u wot m8 1'
+            else
+                Window.clear    
+                currentState = MenuState.new
+            end
+        when 'right'
+            if currentState.stateName == 'Gameplay'
+                puts 'u wot m8 2'
+            else
+                Window.clear    
+                currentState = GameplayState.new
+            end
+        when 'up'
+            if currentState.stateName == 'GameOver'
+                puts 'u wot m8 3'
+            else
+                Window.clear    
+                currentState = GameOverState.new
+            end
 
 # Define a square shape.
 @square = Square.new(x: 0, y: 0, size: 64, color: 'blue')
