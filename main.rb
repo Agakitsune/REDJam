@@ -32,7 +32,7 @@ on :key_down do |event|
             end
         when 'up'
             if currentState.stateName == 'GameOver'
-                puts 'u wot m8 2'
+                puts 'u wot m8 3'
             else
                 Window.clear    
                 currentState = GameOverState.new
