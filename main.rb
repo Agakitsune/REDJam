@@ -2,6 +2,9 @@ require 'ruby2d'
 require './character.rb'
 require './src/SpriteSheet.rb'
 require './src/Vector.rb'
+require './src/OriginSprite.rb'
+require './src/Bullet.rb'
+require './src/Weapon.rb'
 
 # Define a square shape.
 @square = Square.new(x: 0, y: 0, size: 64, color: 'blue')
@@ -11,7 +14,23 @@ require './src/Vector.rb'
 
 set width: 1200, height: 720
 
-@player = SpriteSheet("./assets/Stalin.png", width: 128, height: 128, frame_width: 32, frame_height: 32, animations: {
+d = Vector2.down().mul(100)
+r = Vector2.right().mul(100)
+
+@scaleX = 3
+@scaleY = 3
+
+@random = Random.new()
+
+def rotate(x, y, angle)
+    return Vector2.new(x * Math.cos(angle) - y * Math.sin(angle), x * Math.sin(angle) + y * Math.cos(angle))
+end
+
+def rotateOrigin(x, y, angle, originX, originY)
+    return rotate(x - originX, y - originY, angle)
+end
+
+@player = SpriteSheet("./assets/Stalin.png", width: 32 * @scaleX, height: 32 * @scaleY, frame_width: 32, frame_height: 32, animations: {
     idle_front: {
         y: 0,
         length: 6
@@ -46,32 +65,159 @@ set width: 1200, height: 720
         y: 7,
         length: 6
     },
-    roll_front: {
+    roll_front_A: {
         y: 8,
-        length: 9
+        length: 4,
+        time: [50, 50, 50, 120]
     },
-    roll_sidefront: {
+    roll_front_B: {
+        y: 8,
+        offset: 4,
+        length: 5,
+        time: 80
+    },
+    roll_sidefront_A: {
         y: 9,
-        length: 9
+        length: 4,
+        time: [50, 50, 50, 120]
     },
-    roll_back: {
+    roll_sidefront_B: {
+        y: 9,
+        offset: 4,
+        length: 5,
+        time: 80
+    },
+    roll_back_A: {
         y: 10,
-        length: 9
+        length: 4,
+        time: [50, 50, 50, 120]
     },
-    roll_sideback: {
+    roll_back_B: {
+        y: 10,
+        offset: 4,
+        length: 5,
+        time: 80
+    },
+    roll_sideback_A: {
         y: 11,
-        length: 9
-    }
+        length: 4,
+        time: [50, 50, 50, 120]
+    },
+    roll_sideback_B: {
+        y: 11,
+        offset: 4,
+        length: 5,
+        time: 80
+    },
+    idle_light_front: {
+        y: 12,
+        length: 6
+    },
+    idle_light_sidefront: {
+        y: 13,
+        length: 4,
+        time: 150
+    },
+    idle_light_back: {
+        y: 14,
+        length: 6
+    },
+    idle_light_sideback: {
+        y: 15,
+        length: 4,
+        time: 150
+    },
+    walk_light_front: {
+        y: 16,
+        length: 6
+    },
+    walk_light_sidefront: {
+        y: 17,
+        length: 6
+    },
+    walk_light_back: {
+        y: 18,
+        length: 6
+    },
+    walk_light_sideback: {
+        y: 19,
+        length: 6
+    },
 })
 
-# @player.play animation: :roll_front, loop: true
+@revolver = OriginSprite.new(
+    "./assets/weapon/revolver.png",
+    clip_width: 24,
+    clip_height: 16,
+    width: 24 * @scaleX, height: 16 * @scaleY,
+    animations: {
+        idle_left: [
+            {
+                x: 0,
+                y: 0,
+                width: 24,
+                height: 16
+            }
+        ],
+        idle_right: [
+            {
+                x: 0,
+                y: 16,
+                width: 24,
+                height: 16
+            }
+        ],
+        reload: [
+            {
+                x: 0,
+                y: 32,
+                width: 24,
+                height: 16,
+                time: 70
+            },
+            {
+                x: 0,
+                y: 48,
+                width: 24,
+                height: 16,
+                time: 70
+            },
+            {
+                x: 0,
+                y: 64,
+                width: 24,
+                height: 16,
+                time: 70
+            },
+        ]
+    }
+)
+
+@weapon = Weapon.new(@revolver, originY: 10, hand1: Vector2.new(4, 0), cooldown: 10)
+
+@hand = Image.new(
+    "./assets/hand.png",
+    width: 4 * @scaleX, height: 4 * @scaleY
+)
+
+@bullet = Image.new(
+    "./assets/ally_bullet.png",
+    width: 8 * @scaleX, height: 8 * @scaleX
+)
+
+@bullets = []
+
 # Define the initial speed (and direction).
 @velocity = Vector2.new(0, 0)
 
 @walk = false
 @roll = false
 @rollVelocity = Vector2.new(0, 0)
+@rollInvicible = false
 @rollMouse = Vector2.new(0, 0)
+
+@light_weapon = false
+@heavy_weapon = false
 
 # Define what happens when a specific key is pressed.
 # Each keypress influences on the  movement along the x and y axis.
@@ -99,10 +245,15 @@ on :key_held do |event|
 end
 
 on :mouse_down do |event|
-    case event.button
-        when :right
-            @roll = true
-            @rollMouse = Vector2.vectorize(@player.x + 64, @player.y + 64, Window.mouse_x, Window.mouse_y)
+    if not @roll
+        case event.button
+            when :right
+                @roll = true
+                @rollInvicible = true
+                @rollMouse = Vector2.vectorize(@player.x + 16 * @scaleX, @player.y + 16 * @scaleY, Window.mouse_x, Window.mouse_y)
+            when :left
+                @weapon.shoot()            
+        end
     end
 end
 
@@ -125,6 +276,68 @@ idle_anim = [
     },
     {
         animation: :idle_sidefront,
+        flip: :horizontal
+    },
+]
+
+light_anim = [
+    {
+        animation: :idle_light_front,
+    },
+    {
+        animation: :idle_light_sidefront,
+    },
+    {
+        animation: :idle_light_sideback,
+    },
+    {
+        animation: :idle_light_back,
+    },
+    {
+        animation: :idle_light_sideback,
+        flip: :horizontal
+    },
+    {
+        animation: :idle_light_sidefront,
+        flip: :horizontal
+    },
+    {
+        animation: :idle_light_front,
+        flip: :horizontal
+    },
+    {
+        animation: :idle_light_back,
+        flip: :horizontal
+    },
+]
+
+walk_light_anim = [
+    {
+        animation: :walk_light_front,
+    },
+    {
+        animation: :walk_light_sidefront,
+    },
+    {
+        animation: :walk_light_sideback,
+    },
+    {
+        animation: :walk_light_back,
+    },
+    {
+        animation: :walk_light_sideback,
+        flip: :horizontal
+    },
+    {
+        animation: :walk_light_sidefront,
+        flip: :horizontal
+    },
+    {
+        animation: :walk_light_front,
+        flip: :horizontal
+    },
+    {
+        animation: :walk_light_back,
         flip: :horizontal
     },
 ]
@@ -154,37 +367,85 @@ walk_anim = [
 
 roll_anim = [
     {
-        animation: :roll_front,
+        animation: :roll_front_A
     },
     {
-        animation: :roll_sidefront,
+        animation: :roll_sidefront_A
     },
     {
-        animation: :roll_sideback,
+        animation: :roll_sideback_A
     },
     {
-        animation: :roll_back,
+        animation: :roll_back_A
     },
     {
-        animation: :roll_sideback,
+        animation: :roll_sideback_A,
         flip: :horizontal
     },
     {
-        animation: :roll_sidefront,
+        animation: :roll_sidefront_A,
         flip: :horizontal
     },
 ]
 
-d = Vector2.down().mul(100)
+@weapon.onShoot do
+    shoot = Vector2.vectorize(@player.x + 16 * @scaleX, @player.y + 26 * @scaleY, Window.mouse_x, Window.mouse_y)
+    angle = Math.acos(shoot.normalize().dot(r.normalize()))
+    if Window.mouse_y < (@player.y + 26 * @scaleY)
+        angle *= -1
+    end
+    if Window.mouse_x < (@player.x + 16 * @scaleX)
+        out = rotateOrigin(20 * @scaleX, 5 * @scaleY, angle, 0, 0)
+    else
+        out = rotateOrigin(20 * @scaleX, -5 * @scaleY, angle, 0, 0)
+    end
+    angle *= 180 / Math::PI
+    angle += @random.rand(17) - 9
+    angle *= Math::PI / 180
+    @bullets.append(Bullet.new(@bullet, @player.x + 16 * @scaleX + out.x, @player.y + 26 * @scaleY + out.y, angle, 10))
+end
 
 update do
     clear
-    vec = Vector2.vectorize(@player.x + 64, @player.y + 64, Window.mouse_x, Window.mouse_y)
-    rollVec = Vector2.vectorize(@player.x + 64, @player.y + 64, @player.x + 64 + @rollVelocity.x * 100, @player.y + 64 + @rollVelocity.y * 100)
 
-    vec.drawAt(@player.x + 64, @player.y + 64, color: 'red')
-    d.drawAt(@player.x + 64, @player.y + 64, color: 'blue')
-    rollVec.drawAt(@player.x + 64, @player.y + 64, color: 'green')
+    @light_weapon = @weapon.isLight?
+
+    if Window.mouse_x < (@player.x + 16 * @scaleX)
+        anchorX = 11 * @scaleX
+    else
+        anchorX = 20 * @scaleX
+    end
+
+    vec = Vector2.vectorize(@player.x + 16 * @scaleX, @player.y + 16 * @scaleY, Window.mouse_x, Window.mouse_y)
+    shoot = Vector2.vectorize(@player.x + 16 * @scaleX, @player.y + 26 * @scaleY, Window.mouse_x, Window.mouse_y)
+    rollVec = Vector2.vectorize(@player.x + 16 * @scaleX, @player.y + 16 * @scaleY, @player.x + 16 * @scaleX + @rollVelocity.x * 100, @player.y + 16 * @scaleY + @rollVelocity.y * 100)
+
+    vec.drawAt(@player.x + 16 * @scaleX, @player.y + 16 * @scaleY, color: 'red')
+    d.drawAt(@player.x + 16 * @scaleX, @player.y + 16 * @scaleY, color: 'blue')
+    rollVec.drawAt(@player.x + 16 * @scaleX, @player.y + 16 * @scaleY, color: 'green')
+
+    angle = Math.acos(shoot.normalize().dot(r.normalize())) * 180 / Math::PI
+    if Window.mouse_y < (@player.y + 26 * @scaleY)
+        angle *= -1
+    end
+
+    if Window.mouse_x < (@player.x + 16 * @scaleX)
+        weaponSymbol = :idle_left
+        weaponLoop = true
+        weaponOrigin = Vector2.new(@weapon.width, @weapon.originY)
+        weaponAngle = angle - 180
+    else
+        weaponSymbol = :idle_right
+        weaponLoop = true
+        weaponOrigin = Vector2.new(0, @weapon.originY)
+        weaponAngle = angle
+    end
+    
+    weaponX = @player.x + anchorX
+    weaponY = @player.y + 26 * @scaleY
+
+    @hand.x = @player.x + anchorX - 2 * @scaleX + Math.cos(angle * Math::PI / 180) * @weapon.firstHand().x * @scaleX
+    @hand.y = @player.y + 26 * @scaleY - 2 * @scaleY + Math.sin(angle * Math::PI / 180) * @weapon.firstHand().x * @scaleX
 
     index = 0
     if @roll
@@ -193,7 +454,11 @@ update do
         dot = vec.normalize().dot(d.normalize())
     end
     if (dot > 0.71)
-        index = 0
+        if Window.mouse_x > (@player.x + 16 * @scaleX) and @light_weapon and not @roll
+            index = 6
+        else
+            index = 0
+        end
     elsif (dot >= 0)
         if @roll
             if @rollVelocity.x > 0
@@ -202,7 +467,7 @@ update do
                 index = 5
             end
         else
-            if Window.mouse_x > (@player.x + 64)
+            if Window.mouse_x > (@player.x + 16 * @scaleX)
                 index = 1
             else
                 index = 5
@@ -216,7 +481,7 @@ update do
                 index = 4
             end
         else
-            if Window.mouse_x > (@player.x + 64)
+            if Window.mouse_x > (@player.x + 16 * @scaleX)
                 index = 2
             else
                 index = 4
@@ -226,15 +491,35 @@ update do
         index = 3
     end
 
-    if @roll
+    if @roll and @rollInvicible
         @velocity = @rollVelocity
         @player.play animation: roll_anim[index][:animation], loop: false, flip: roll_anim[index][:flip] || :none do
-            @roll = false
+            nextSym = (roll_anim[index][:animation].to_s.chop() + "B").to_sym
+            puts "PhaseB"
+            @rollInvicible = false
+            @player.play animation: nextSym, loop: false, flip: roll_anim[index][:flip] || :none do
+                puts "done"
+                @roll = false
+            end
         end
-    elsif @walk
-        @player.play animation: walk_anim[index][:animation], loop: true, flip: walk_anim[index][:flip] || :none
+    elsif @walk and not @roll
+        if @light_weapon
+            @player.play animation: walk_light_anim[index][:animation], loop: true, flip: :none
+        else
+            @player.play animation: walk_anim[index][:animation], loop: true, flip: walk_anim[index][:flip] || :none
+        end
+    elsif not @roll
+        if @light_weapon
+            if Window.mouse_x > (@player.x + 16 * @scaleX)
+                @player.play animation: light_anim[index][:animation], loop: true, flip: :none
+            else
+                @player.play animation: light_anim[index][:animation], loop: true, flip: :horizontal
+            end
+        else
+            @player.play animation: idle_anim[index][:animation], loop: true, flip: idle_anim[index][:flip] || :none
+        end
     else
-        @player.play animation: idle_anim[index][:animation], loop: true, flip: idle_anim[index][:flip] || :none
+        @velocity = @rollVelocity
     end
 
     if @square.x < 0
@@ -281,10 +566,12 @@ update do
         end
     end
 
-    @velocity = @velocity.normalize().mul(3.5)
+    @velocity = @velocity.normalize().mul(4.0)
 
-    if @roll
-        @velocity = @velocity.mul(1.5)
+    if @roll and @rollInvicible
+        @velocity = @velocity.mul(2)
+    elsif not @rollInvicible and @roll
+        @velocity = @velocity.mul(0.95)
     end
 
     @square.x += @velocity.x
@@ -304,7 +591,19 @@ update do
     @velocity.x = 0
     @velocity.y = 0
 
+    @weapon.update
+    @bullets.each do |bullet|
+        bullet.update
+        bullet.draw
+    end
+
     @player.add
+
+    if @light_weapon and not @roll
+        @weapon.play animation: weaponSymbol, loop: weaponLoop
+        @weapon.draw(x: weaponX, y: weaponY, originX: weaponOrigin.x, originY: weaponOrigin.y, angle: weaponAngle, scaleX: @scaleX, scaleY: @scaleY)
+        @hand.add
+    end
 end
 
 show
