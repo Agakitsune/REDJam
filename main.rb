@@ -16,6 +16,9 @@ set title: 'ruby2dGame'
 
 $currentState = MenuState.new
 
+$velocity = Vector2.new(0, 0)
+$rollVelocity = Vector2.new(0, 0)
+
 set width: 1200, height: 720
 
 update do

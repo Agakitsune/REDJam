@@ -11,6 +11,7 @@ def rotateOrigin(x, y, angle, originX, originY)
 end
 
 on :key_held do |event|
+    $controller = false
     if $currentState.stateName == "Gameplay" and not $roll
         case event.key
             when 'a'
@@ -34,6 +35,7 @@ on :key_held do |event|
 end
 
 on :mouse_down do |event|
+    $controller = false
     if not $roll
         case event.button
             when :right
@@ -44,6 +46,59 @@ on :mouse_down do |event|
                 end
             when :left
                 $weapon.shoot() if not $weapon.nil?
+        end
+    end
+end
+
+on :controller_button_down do |event|
+    $controller = true
+    if $currentState.stateName == "Gameplay"
+        case event.button
+            when :a
+                if $walk
+                    $roll = true
+                    $rollInvicible = true
+                    $rollMouse = Vector2.vectorize($player.x + 16 * $scaleX, $player.y + 16 * $scaleY, Window.mouse_x, Window.mouse_y)
+                end
+            when :right_shoulder
+                $weapon.shoot() if not $weapon.nil?
+        end
+    end
+end
+
+$axis = {
+    left_x: 0,
+    left_y: 0,
+    right_x: 0,
+    right_y: 0
+}
+
+$controller = false
+
+on :controller_axis do |event|
+    $controller = true
+    if $currentState.stateName == "Gameplay"
+        case event.axis
+            when :left_x
+                if event.value.abs() > 0.1
+                    $axis[:left_x] = event.value
+                else
+                    $axis[:left_x] = 0
+                end
+            when :left_y
+                if event.value.abs() > 0.1
+                    $axis[:left_y] = event.value
+                else
+                    $axis[:left_y] = 0
+                end
+            when :right_x
+                if event.value.abs() > 0.1
+                    $axis[:right_x] = event.value
+                end
+            when :right_y
+                if event.value.abs() > 0.1
+                    $axis[:right_y] = event.value
+                end
         end
     end
 end
@@ -507,12 +562,25 @@ class GameplayState
         ]
 
         $weapon.onShoot do
-            shoot = Vector2.vectorize($player.x + 16 * $scaleX, $player.y + 26 * $scaleY, Window.mouse_x, Window.mouse_y)
+            if $controller
+                shoot = Vector2.vectorize($player.x + 16 * $scaleX, $player.y + 26 * $scaleY, $player.x + 16 * $scaleX + $axis[:right_x] * 100, $player.y + 16 * $scaleY + $axis[:right_y] * 100)
+            else
+                shoot = Vector2.vectorize($player.x + 16 * $scaleX, $player.y + 26 * $scaleY, Window.mouse_x, Window.mouse_y)
+            end
             angle = Math.acos(shoot.normalize().dot(@r.normalize()))
-            if Window.mouse_y < ($player.y + 26 * $scaleY)
+
+            if $controller
+                flipY = $axis[:right_y] < 0
+                flipX = $axis[:right_x] < 0
+            else
+                flipY = Window.mouse_y < ($player.y + 26 * $scaleY)
+                flipX = Window.mouse_x < ($player.x + 16 * $scaleX)
+            end
+
+            if flipY
                 angle *= -1
             end
-            if Window.mouse_x < ($player.x + 16 * $scaleX)
+            if flipX
                 out = rotateOrigin(20 * $scaleX, 5 * $scaleY, angle, 0, 0)
             else
                 out = rotateOrigin(20 * $scaleX, -5 * $scaleY, angle, 0, 0)
@@ -593,26 +661,59 @@ class GameplayState
         #     i = i + 1
         # end
 
+        
+
         Window.clear
 
         @light_weapon = $weapon.isLight?
 
-        if Window.mouse_x < ($player.x + 16 * $scaleX)
+        if $controller
+            anchor = $axis[:right_x] < 0
+        else
+            anchor = Window.mouse_x < ($player.x + 16 * $scaleX)
+        end
+
+        if anchor
             anchorX = 11 * $scaleX
         else
             anchorX = 20 * $scaleX
         end
 
-        vec = Vector2.vectorize($player.x + 16 * $scaleX, $player.y + 16 * $scaleY, Window.mouse_x, Window.mouse_y)
-        shoot = Vector2.vectorize($player.x + 16 * $scaleX, $player.y + 26 * $scaleY, Window.mouse_x, Window.mouse_y)
-        rollVec = Vector2.vectorize($player.x + 16 * $scaleX, $player.y + 16 * $scaleY, $player.x + 16 * $scaleX + $rollVelocity.x * 100, $player.y + 16 * $scaleY + $rollVelocity.y * 100)
-
-        angle = Math.acos(shoot.normalize().dot(@r.normalize())) * 180 / Math::PI
-        if Window.mouse_y < ($player.y + 26 * $scaleY)
-            angle *= -1
+        if $controller
+            $velocity.x = $axis[:left_x]
+            $velocity.y = $axis[:left_y]
+            $rollVelocity.x = $axis[:left_x]
+            $rollVelocity.y = $axis[:left_y]
+            if $axis[:left_x] != 0 or $axis[:left_y] != 0
+                $walk = true
+            end
+            vec = Vector2.vectorize($player.x + 16 * $scaleX, $player.y + 16 * $scaleY, $player.x + 16 * $scaleX + $axis[:right_x] * 100, $player.y + 16 * $scaleY + $axis[:right_y] * 100)
+            shoot = Vector2.vectorize($player.x + 16 * $scaleX, $player.y + 26 * $scaleY, $player.x + 16 * $scaleX + $axis[:right_x] * 100, $player.y + 16 * $scaleY + $axis[:right_y] * 100)
+            rollVec = Vector2.vectorize($player.x + 16 * $scaleX, $player.y + 16 * $scaleY, $player.x + 16 * $scaleX + $rollVelocity.x * 100, $player.y + 16 * $scaleY + $rollVelocity.y * 100)
+        else
+            vec = Vector2.vectorize($player.x + 16 * $scaleX, $player.y + 16 * $scaleY, Window.mouse_x, Window.mouse_y)
+            shoot = Vector2.vectorize($player.x + 16 * $scaleX, $player.y + 26 * $scaleY, Window.mouse_x, Window.mouse_y)
+            rollVec = Vector2.vectorize($player.x + 16 * $scaleX, $player.y + 16 * $scaleY, $player.x + 16 * $scaleX + $rollVelocity.x * 100, $player.y + 16 * $scaleY + $rollVelocity.y * 100)
         end
 
-        if Window.mouse_x < ($player.x + 16 * $scaleX)
+        angle = Math.acos(shoot.normalize().dot(@r.normalize())) * 180 / Math::PI
+        if $controller
+            if $axis[:right_y] < 0
+                angle *= -1
+            end
+        else
+            if Window.mouse_y < ($player.y + 26 * $scaleY)
+                angle *= -1
+            end
+        end
+
+        if $controller
+            flip = $axis[:right_x] < 0
+        else
+            flip = Window.mouse_x < ($player.x + 16 * $scaleX)
+        end
+
+        if flip
             weaponSymbol = :idle_left
             weaponLoop = true
             weaponOrigin = Vector2.new($weapon.width, $weapon.originY)
@@ -636,8 +737,15 @@ class GameplayState
         else
             dot = vec.normalize().dot(@d.normalize())
         end
+
+        if $controller
+            flip = $axis[:right_x] > 0
+        else
+            flip = Window.mouse_x > ($player.x + 16 * $scaleX)
+        end
+
         if (dot > 0.71)
-            if Window.mouse_x > ($player.x + 16 * $scaleX) and @light_weapon and not $roll
+            if flip and @light_weapon and not $roll
                 index = 6
             else
                 index = 0
@@ -650,7 +758,7 @@ class GameplayState
                     index = 5
                 end
             else
-                if Window.mouse_x > ($player.x + 16 * $scaleX)
+                if flip
                     index = 1
                 else
                     index = 5
@@ -664,7 +772,7 @@ class GameplayState
                     index = 4
                 end
             else
-                if Window.mouse_x > ($player.x + 16 * $scaleX)
+                if flip
                     index = 2
                 else
                     index = 4
@@ -685,7 +793,7 @@ class GameplayState
             end
         elsif $walk and not $roll
             if @light_weapon
-                if Window.mouse_x > ($player.x + 16 * $scaleX)
+                if flip
                     $player.play animation: @walk_light_anim[index][:animation], loop: true, flip: :none
                 else
                     $player.play animation: @walk_light_anim[index][:animation], loop: true, flip: :horizontal
@@ -695,7 +803,7 @@ class GameplayState
             end
         elsif not $roll
             if @light_weapon
-                if Window.mouse_x > ($player.x + 16 * $scaleX)
+                if flip
                     $player.play animation: @light_anim[index][:animation], loop: true, flip: :none
                 else
                     $player.play animation: @light_anim[index][:animation], loop: true, flip: :horizontal
@@ -877,8 +985,6 @@ class GameplayState
                 e[:angle] = Math.acos(toward.normalize().dot(@d.normalize())) * 180 / Math::PI
                 pos = pos.add(toward)
             end
-
-            Rectangle.draw(x: pos.x, y: pos.y, width: 22 * $scaleX, height: 22 * $scaleY, color: [[1.0, 0.0, 0.0, 1.0]] * 4)
 
             sprite = @enemySprite[index]
 
