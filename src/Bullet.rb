@@ -9,6 +9,14 @@ class Bullet
         @speed = speed
     end
 
+    def x
+        @x - @img.width / 2
+    end
+
+    def y
+        @y - @img.height / 2
+    end
+
     def update
         @x += Math.cos(@angle) * @speed
         @y += Math.sin(@angle) * @speed
