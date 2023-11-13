@@ -900,7 +900,7 @@ class GameplayState
                             @level += 1
                             @xpToLevel += 10
                             @atk += 1
-                            @speed += 0.5
+                            @speed += 0.25
                             @hpMax += 2
                             @hp = @hpMax
                         end
