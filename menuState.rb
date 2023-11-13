@@ -45,8 +45,9 @@ class MenuState
             if @bgDir == 1
                 @bg.x += 2;
             end
-            if @bg.x < -1000
-                @bgDir = 1
+            if @bg.x < -1920
+                @bg.x = 0
+                # @bgDir = 1
             end
             if @bg.x > 0
                 @bgDir = 0

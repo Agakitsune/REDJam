@@ -19,6 +19,9 @@ $currentState = MenuState.new
 $velocity = Vector2.new(0, 0)
 $rollVelocity = Vector2.new(0, 0)
 
+music = Sound.new('./music.wav')
+music.play
+
 set width: 1200, height: 720
 
 update do
